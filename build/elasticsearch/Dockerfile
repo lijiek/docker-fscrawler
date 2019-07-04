@@ -13,6 +13,7 @@
 # FROM docker.elastic.co/elasticsearch/elasticsearch:6.1.1
 FROM docker.elastic.co/elasticsearch/elasticsearch:6.4.0
 
+EXPOSE 9200 9300
 
 # Healthcheck. Copied from
 # https://github.com/docker-library/healthcheck/blob/master/elasticsearch/Dockerfile

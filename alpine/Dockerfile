@@ -81,8 +81,22 @@ RUN apk add --no-cache 'su-exec>=0.2' bash openssl
 # for compiling from source
 WORKDIR /usr/src/
 ENV FSCRAWLER_VERSION 2.5-SNAPSHOT
+
+#ENV HTTP_PROXY http://135.245.48.34:8000
+#ENV HTTPS_PROXY http://135.245.48.34:8000
+ENV http_proxy http://135.245.48.34:8000
+ENV https_proxy http://135.245.48.34:8000
+
+#RUN export http_proxy=$HTTP_PROXY
+#RUN export https_proxy=$HTTPS_PROXY
+RUN echo "Acquire::http::proxy \"$HTTP_PROXY\";\nAcquire::https::proxy \"$HTTPS_PROXY\";" > /etc/apt/apt.conf
+
 RUN apk add --update --no-cache maven wget # openjdk8 git
-RUN wget https://github.com/dadoonet/fscrawler/archive/master.zip && unzip master.zip
+
+#RUN export HTTP_PROXY=http://135.245.48.34:8000
+#RUN export HTTPS_PROXY=http://135.245.48.34:8000
+
+RUN wget --no-check-certificate https://github.com/dadoonet/fscrawler/archive/master.zip -e use_proxy=yes -e https_proxy=http://135.245.48.34:8000  -e http_proxy=http://135.245.48.34:8000  && unzip master.zip
 WORKDIR /usr/src/fscrawler-master
 ENV MAVEN_OPTS="-Xmx2g -Xms2g"
 # -XX:MaxPermSize=2g

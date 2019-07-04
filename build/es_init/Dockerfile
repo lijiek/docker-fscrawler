@@ -1,4 +1,8 @@
 FROM alpine:latest
+
+ENV HTTP_PROXY "http://135.245.48.34:8000" 
+ENV HTTPS_PROXY "http://135.245.48.34:8000" 
+
 RUN apk --update add curl openssl
 RUN apk add jq
 WORKDIR /code

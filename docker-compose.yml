@@ -27,6 +27,9 @@ services:
       # es_init:
       elasticsearch1:
         condition: service_healthy
+    networks:
+      - fscrawler-networks
+
     command:
       - --trace
       - --config_dir
@@ -34,11 +37,42 @@ services:
       - docker-compose
 
   elasticsearch1:
+    environment:
+      - xpack.security.enabled=false
+      - xpack.monitoring.enabled=false
+      - xpack.ml.enabled=false
+      - xpack.graph.enabled=false
+      - xpack.watcher.enabled=false
+    ports: # Expose ElasticSearch ports
+      - "9300:9300"
+      - "9200:9200"
+
     build:
       # build a dockerfile on top of the official elasticsearch docker image hosted at docker.elastic.co
       # It includes healthcheck
       # Check build/elasticsearch/Dockerfile for more details
       context: ${PWD}/build/elasticsearch
+    networks:
+      - fscrawler-networks
+
+
+  kibana1:
+    build:
+      context: ${PWD}/build/kibana
+    environment:
+     - ES_URL=http://elasticsearch1:9200
+     #- "ELASTICSEARCH_URL=http://elasticsearch:9200"
+    ports: # Expose ElasticSearch ports
+      - "5601:5601"
+    links:
+      - elasticsearch1
+    depends_on:
+      elasticsearch1:
+        condition: service_healthy
+    networks:
+      - fscrawler-networks
+
+
 
   # service that serves .travis.yml to make curl calls to elasticsearch1 and fscrawler
   tester:
@@ -46,6 +80,9 @@ services:
       context: ${PWD}/build/tester/
     volumes:
     - ${PWD}/test/data/:/usr/share/fscrawler/data/:ro
+    networks:
+      - fscrawler-networks
+
 
   # worker service that uploads example pipeline
   es_init:
@@ -56,6 +93,8 @@ services:
         condition: service_healthy
     environment:
       - ES_URL=http://elasticsearch1:9200
+    networks:
+      - fscrawler-networks
 
 
   # cannot name service with underscores
@@ -75,6 +114,9 @@ services:
         condition: service_healthy
     ports:
       - "8890:8080"
+    networks:
+      - fscrawler-networks
+
     command:
       - --trace
       - --config_dir
@@ -83,3 +125,8 @@ services:
       - "0"
       - --rest
       - fscrawler_rest
+
+networks:
+  fscrawler-networks:
+    driver: bridge
+
