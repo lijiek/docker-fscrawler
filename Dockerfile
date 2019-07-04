@@ -3,6 +3,16 @@
 
 FROM ubuntu:16.04
 
+ENV HTTP_PROXY http://135.245.48.34:8000
+ENV HTTPS_PROXY http://135.245.48.34:8000
+ENV http_proxy http://135.245.48.34:8000
+ENV https_proxy http://135.245.48.34:8000
+
+
+RUN export http_proxy=$HTTP_PROXY
+RUN export https_proxy=$HTTPS_PROXY
+RUN echo "Acquire::http::proxy \"$HTTP_PROXY\";\nAcquire::https::proxy \"$HTTPS_PROXY\";" > /etc/apt/apt.conf
+
 # split each package to a separate line just for bandwidth purposes while running in FFA
 RUN apt-get update && apt-get install -y openjdk-8-jdk
 RUN apt-get update && apt-get install -y wget
@@ -19,7 +29,9 @@ WORKDIR /runtime
 # Use my own fork/branch
 # https://github.com/dadoonet/fscrawler/pull/475
 # Edit 2018-10-04 PR was merged, so move back to upstream
-ENV FS_BRANCH=master
+ENV FS_BRANCH=fscrawler-2.6
+#https://github.com/dadoonet/fscrawler/archive/fscrawler-2.6.zip
+ENV FS_BRANCH_LATEST=master
 # ENV FS_BRANCH=fscrawler-2.5
 ENV FS_UPSTREAM=dadoonet
 # ENV FS_BRANCH=issue_461_rest_pipeline
@@ -34,11 +46,15 @@ WORKDIR /runtime/fscrawler-$FS_BRANCH
 # usually same as FSCRAWLER_BRANCH
 # ENV FSCRAWLER_VERSION=2.5-SNAPSHOT
 # ENV FSCRAWLER_VERSION=2.5
-ENV FSCRAWLER_VERSION=2.6-SNAPSHOT
+#ENV FSCRAWLER_VERSION=2.6-SNAPSHOT
+ENV FSCRAWLER_VERSION=2.6
+ENV ES_VERSION=es6
 
+#RUN export MAVEN_OPTS="-Dhttp.proxyHost=135.245.48.34 -Dhttp.proxyPort=8000 -Dhttps.proxyHost=135.245.48.34 -Dhttps.proxyPort=8000"
 # build
 # RUN mvn clean install -X -DskipTests # > /dev/null
-RUN mvn clean package -DskipTests > /dev/null
+#RUN mvn clean package -DskipTests > /dev/null
+RUN mvn clean package -DskipTests -Dhttp.proxyHost=135.245.48.34 -Dhttp.proxyPort=8000 -Dhttps.proxyHost=135.245.48.34 -Dhttps.proxyPort=8000 
 
 # FSCRAWLER_VERSION is same as FS_BRANCH
 RUN mkdir /usr/share/fscrawler
@@ -55,7 +71,7 @@ RUN addgroup --system fscrawler && adduser --system --ingroup fscrawler fscrawle
 RUN apt-get update && apt-get install -y gosu bash openssl
 
 # Now cp and unzip the generated zip file from the maven build above
-RUN cp /runtime/fscrawler-$FS_BRANCH/distribution/target/fscrawler-$FSCRAWLER_VERSION.zip ./fscrawler.zip
+RUN cp /runtime/fscrawler-$FS_BRANCH/distribution/$ES_VERSION/target/fscrawler-$ES_VERSION-$FSCRAWLER_VERSION.zip ./fscrawler.zip
 
 
 # Remove logs path from below as it was just copy-pasted from elasticsearch
@@ -75,8 +91,8 @@ RUN set -ex; \
 
 # shopt from https://unix.stackexchange.com/a/6397/312018
 # RUN /bin/bash -c "shopt -s dotglob nullglob; mv /runtime/fscrawler-$FSCRAWLER_VERSION/* .; ls -al /runtime/fscrawler-$FSCRAWLER_VERSION; rmdir /runtime/fscrawler-$FSCRAWLER_VERSION;"
-RUN mv fscrawler-$FSCRAWLER_VERSION/* .; \
-  rmdir fscrawler-$FSCRAWLER_VERSION;
+RUN mv fscrawler-$ES_VERSION-$FSCRAWLER_VERSION/* .; \
+  rmdir fscrawler-$ES_VERSION-$FSCRAWLER_VERSION;
 
 #RUN chown -R fscrawler:fscrawler .
 #USER fscrawler
