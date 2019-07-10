@@ -5,8 +5,8 @@ FROM ubuntu:16.04
 
 ENV HTTP_PROXY http://135.245.48.34:8000
 ENV HTTPS_PROXY http://135.245.48.34:8000
-ENV http_proxy http://135.245.48.34:8000
-ENV https_proxy http://135.245.48.34:8000
+#ENV http_proxy http://135.245.48.34:8000
+#ENV https_proxy http://135.245.48.34:8000
 
 
 RUN export http_proxy=$HTTP_PROXY

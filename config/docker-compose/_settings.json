@@ -2,6 +2,18 @@
   "name" : "docker-compose",
   "fs" : {
     "url" : "/usr/share/fscrawler/data",
+    "includes": [
+      "*.doc",
+      "*.docx",
+      "*.pptx",
+      "*.htm", 
+      "*.html",
+      "*.xls",
+      "*.xlsx",
+      "*.txt",
+      "*.cpp",
+      "*.pdf"
+    ],
     "filename_as_id" : true
   },
   "elasticsearch" : {

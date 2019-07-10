@@ -16,6 +16,7 @@ services:
       # context: ${PWD}/alpine
     volumes:
     - ${PWD}/test/data/:/usr/share/fscrawler/data/:ro
+    #- ~/Documents/:/usr/share/fscrawler/data/:ro
     - ${PWD}/config/docker-compose:/usr/share/fscrawler/config-mount/docker-compose
 
     # Despite the python tester having a built-in healthcheck at tests/es_acceptance.py#wait_for_cluster_health
@@ -35,6 +36,30 @@ services:
       - --config_dir
       - /usr/share/fscrawler/config
       - docker-compose
+
+  api: # Node.js App
+    build: 
+      context: ${PWD}/build/server_api
+    ports:
+      - "3000:3000" # Expose API port
+      - "9229:9229" # Expose Node process debug port (disable in production)
+    environment: # Set ENV vars
+     - NODE_ENV=local
+     - ES_HOST=elasticsearch1
+     - PORT=3000
+    networks:
+      - fscrawler-networks
+
+
+  frontend: # Nginx Server For Frontend App
+    image: nginx
+    volumes: # Serve local "public" dir
+      - ./build/public:/usr/share/nginx/html
+    ports:
+      - "8686:80" # Forward site to localhost:8686
+    networks:
+      - fscrawler-networks
+
 
   elasticsearch1:
     environment:
