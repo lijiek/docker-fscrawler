@@ -1,20 +1,41 @@
 # Copied from https://github.com/dadoonet/fscrawler/issues/314#issuecomment-282823207
 # with modifications
 
-FROM ubuntu:16.04
+#FROM ubuntu:16.04
+FROM gtrafimenkov/ubuntu1604-openjdk-sbt
 
 ENV HTTP_PROXY http://135.245.48.34:8000
 ENV HTTPS_PROXY http://135.245.48.34:8000
-#ENV http_proxy http://135.245.48.34:8000
-#ENV https_proxy http://135.245.48.34:8000
+ENV http_proxy http://135.245.48.34:8000
+ENV https_proxy http://135.245.48.34:8000
+#
+#ENV http_proxy http://138.203.2.254:8080
+#ENV https_proxy http://138.203.2.254:8080
+#ENV HTTP_PROXY http://138.203.2.254:8080
+#ENV HTTPS_PROXY http://138.203.2.254:8080
 
 
 RUN export http_proxy=$HTTP_PROXY
 RUN export https_proxy=$HTTPS_PROXY
-RUN echo "Acquire::http::proxy \"$HTTP_PROXY\";\nAcquire::https::proxy \"$HTTPS_PROXY\";" > /etc/apt/apt.conf
 
+#RUN export http_proxy=http://138.203.2.254:8080
+#RUN export https_proxy=http://138.203.2.254:8080
+
+RUN echo "Acquire::http::proxy \"http://135.245.48.34:8000\";\nAcquire::https::proxy \"http://135.245.48.34:8000\"; \nAcquire::socks::proxy \"http://135.245.48.34:8000\";" > /etc/apt/apt.conf
+#RUN echo "Acquire::http::proxy \"$HTTP_PROXY\";\nAcquire::https::proxy \"$HTTPS_PROXY\";" > /etc/apt/apt.conf
+
+#the following RUN to solve the Failed to fetch http://security.ubuntu.com/ubuntu/pool/main/o/openjdk-8/openjdk-8-jdk-headless_8u212-b03-0ubuntu1.16.04.1_amd64.deb  Connection failed
+#RUN (echo "deb http://http.debian.net/debian jessie-backports main" > /etc/apt/sources.list.d/backports.list) && \
+#    rm -rf /var/lib/apt/lists/*  && \
+#    apt-get clean  && \
+#    apt-get update -y && \
+#    apt-get install -t jessie-backports -y
+
+#RUN add-apt-repository ppa:openjdk-r/ppa
 # split each package to a separate line just for bandwidth purposes while running in FFA
-RUN apt-get update && apt-get install -y openjdk-8-jdk
+RUN apt-get update && apt-get install -y apt-utils
+#RUN apt-get update && apt-get install -y default-jdk
+#RUN apt-get update && apt-get install -y openjdk-8-jdk
 RUN apt-get update && apt-get install -y wget
 RUN apt-get update && apt-get install -y unzip
 RUN apt-get update && apt-get install -y maven
